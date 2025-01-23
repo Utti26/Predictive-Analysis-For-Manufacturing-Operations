@@ -1,157 +1,140 @@
-# Predictive-Analysis-For-Manufacturing-Operations
+# Predictive Analysis for Manufacturing Operations
 
-This is a Flask web application that enables users to:
-- Upload a dataset.
-- Train a machine learning model (Decision Tree Classifier) on the uploaded dataset.
-- Use the trained model to make predictions based on user inputs.
-
-## Features
-1. **File Upload (`/upload`)**:
-   - Accepts a CSV file containing machinery data.
-   - Encodes the `Machine_ID` column into numerical values using Label Encoding.
-
-2. **Model Training (`/train`)**:
-   - Trains a Decision Tree Classifier on the uploaded dataset.
-   - Splits the data into training and testing sets (80%-20%).
-   - Evaluates the model and returns:
-     - **Accuracy Score**: The proportion of correct predictions.
-     - **Classification Report**: Precision, recall, and F1-score for each class.
-
-3. **Prediction (`/predict`)**:
-   - Accepts inputs: `Temperature`, `Run_Time`, and `Machine_ID`.
-   - Encodes `Machine_ID` and predicts whether downtime will occur (Yes/No).
-   - Returns the prediction along with confidence probability.
+This project provides a RESTful API to predict machine downtime using manufacturing data. The API includes endpoints to upload a dataset, train a machine learning model, and make predictions.
 
 ---
 
-## How to Run the Application
+## **Features**
+- **Upload Endpoint**: Upload a CSV file containing manufacturing data.
+- **Train Endpoint**: Train a machine learning model (Decision Tree Classifier) on the uploaded data.
+- **Predict Endpoint**: Provide inputs like `Machine_ID`, `Temperature`, and `Run_Time` to predict downtime.
+
+---
+
+## **Setup Instructions**
 
 ### Prerequisites
-Ensure you have Python installed along with the required libraries. Use the following command to install the dependencies:
+- Python 3.7 or higher
+- Required Libraries: `Flask`, `pandas`, `scikit-learn`, `numpy`
 
-```bash
-pip install flask pandas scikit-learn
-```
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone <repo_url>
+   cd <repo_name>
+Install dependencies:
 
-### Steps
-1. Clone this repository or copy the code.
-2. Save the code in a file, e.g., `app.py`.
-3. Run the application using:
+bash
+Copy
+Edit
+pip install -r requirements.txt
+Generate synthetic data (optional): If no dataset is available, generate a sample dataset using the script:
 
-```bash
+bash
+Copy
+Edit
+python create_dataset.py
+Run the API:
+
+bash
+Copy
+Edit
 python app.py
-```
-
-4. Access the application at `http://127.0.0.1:5000` in your browser or API testing tools like Postman.
-
----
-
-## API Endpoints
-
-### 1. **Upload Dataset**
-**Endpoint**: `/upload`  
-**Method**: `POST`
-
-#### Request:
-- Upload a CSV file containing the dataset. Example dataset columns:
-  - `Machine_ID`: Categorical identifier for the machine.
-  - `Temperature`: Numerical value indicating machine temperature.
-  - `Run_Time`: Numerical value indicating runtime.
-  - `Downtime_Flag`: Target variable (1 = Downtime, 0 = No Downtime).
-
-#### Response:
-- Success: `{"message": "File uploaded and processed successfully."}`
-- Error: `{"error": "<error message>"}`
-
-### 2. **Train Model**
-**Endpoint**: `/train`  
-**Method**: `POST`
-
-#### Request:
-No additional data required. The model uses the uploaded dataset.
-
-#### Response:
-- Success:
-  ```json
-  {
-    "accuracy": 0.95,
-    "classification_report": {
-      "0": {"precision": 0.96, "recall": 0.94, "f1-score": 0.95},
-      "1": {"precision": 0.92, "recall": 0.97, "f1-score": 0.94},
-      "accuracy": 0.95
+API Endpoints
+1. Upload Data
+Endpoint: POST /upload
+Description: Upload a CSV file with columns Machine_ID, Temperature, Run_Time, and Downtime_Flag.
+Input: CSV file
+Response:
+json
+Copy
+Edit
+{
+  "message": "File uploaded and processed successfully."
+}
+Error:
+json
+Copy
+Edit
+{
+  "error": "No file provided."
+}
+2. Train Model
+Endpoint: POST /train
+Description: Train the model using the uploaded dataset.
+Response:
+json
+Copy
+Edit
+{
+  "accuracy": 0.95,
+  "classification_report": {
+    "0": {
+      "precision": 0.96,
+      "recall": 0.98,
+      "f1-score": 0.97,
+      "support": 20
+    },
+    "1": {
+      "precision": 0.89,
+      "recall": 0.83,
+      "f1-score": 0.86,
+      "support": 10
     }
   }
-  ```
-- Error: `{"error": "<error message>"}`
-
-### 3. **Predict Downtime**
-**Endpoint**: `/predict`  
-**Method**: `POST`
-
-#### Request:
-Provide the following JSON data:
-```json
+}
+3. Predict Downtime
+Endpoint: POST /predict
+Description: Provide Machine_ID, Temperature, and Run_Time to predict downtime.
+Input:
+json
+Copy
+Edit
 {
   "Machine_ID": "M1",
-  "Temperature": 75.3,
-  "Run_Time": 120
+  "Temperature": 85.5,
+  "Run_Time": 5.2
 }
-```
+Response:
+json
+Copy
+Edit
+{
+  "Downtime": "Yes",
+  "Confidence": 0.88
+}
+File Structure
+bash
+Copy
+Edit
+.
+├── app.py                  # Main API code
+├── create_dataset.py       # Script to generate synthetic data
+├── model.py                # Model training and evaluation script
+├── manufacturing_data.csv  # Example dataset (auto-generated)
+└── README.md               # Documentation
+Testing the API
+Use Postman or cURL to test the API locally:
 
-#### Response:
-- Success:
-  ```json
-  {
-    "Downtime": "Yes",
-    "Confidence": 0.85
-  }
-  ```
-- Error: `{"error": "<error message>"}`
+Upload Data:
 
----
+bash
+Copy
+Edit
+curl -X POST -F "file=@manufacturing_data.csv" http://127.0.0.1:5000/upload
+Train Model:
 
-## Example Dataset
-| Machine_ID | Temperature | Run_Time | Downtime_Flag |
-|------------|-------------|----------|---------------|
-| M1         | 75.3        | 120      | 1             |
-| M2         | 65.0        | 80       | 0             |
-| M1         | 70.0        | 100      | 1             |
+bash
+Copy
+Edit
+curl -X POST http://127.0.0.1:5000/train
+Make Predictions:
 
----
-
-## Code Overview
-1. **Flask Initialization**:
-   - The Flask app is initialized with `Flask(__name__)`.
-
-2. **Global Variables**:
-   - `uploaded_data`: Stores the uploaded dataset.
-   - `model`: Stores the trained Decision Tree Classifier.
-   - `label_encoder`: Stores the encoder for `Machine_ID`.
-
-3. **Endpoints**:
-   - `/upload`: Handles file upload and preprocessing.
-   - `/train`: Trains the model using the uploaded data.
-   - `/predict`: Predicts downtime based on user inputs.
-
-4. **Error Handling**:
-   - Each endpoint has a `try-except` block to handle exceptions and return appropriate error messages.
-
----
-
-## Dependencies
-- Flask
-- Pandas
-- Scikit-learn
-
----
-
-## Future Enhancements
-- Add support for other machine learning algorithms.
-- Enable data visualization for exploratory data analysis (EDA).
-- Deploy the app on a cloud platform like AWS, Azure, or Google Cloud.
-
----
-
-## License
-This project is free to use for educational purposes. Feel free to modify and enhance it as needed.
-
+bash
+Copy
+Edit
+curl -X POST -H "Content-Type: application/json" -d '{"Machine_ID": "M1", "Temperature": 85, "Run_Time": 5}' http://127.0.0.1:5000/predict
+Future Enhancements
+Add advanced preprocessing and feature selection.
+Support for other machine learning models.
+Implement authentication and user access control for the API.
